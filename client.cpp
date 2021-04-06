@@ -21,20 +21,20 @@ const unsigned int num_arguments = 7;
 
 int main (int argc, char *argv[num_arguments]) {
 
-  if (argc < 7){cerr << "Too few arguements, try again" << endl;  exit(1);}
+//  if (argc < 7){cerr << "Too few arguements, try again" << endl;  exit(1);}
 
   int server_port = atoi(argv[1]); //a server IP port
   int repetition = atoi(argv[2]); //the repetition of sending a set of data buffers****************un-used
   int nbufs = atoi(argv[3]); //the number of data buffers
   int bufsize = atoi(argv[4]); //the size of each data buffer (in bytes)
-  string serverlp = argv[5]; //a server IP name, converted below
+  /*string*/char* serverlp = argv[5]; //a server IP name, converted below
   int type = atoi(argv[6]); //the type of transfer scenario: 1, 2, or 3 ****************un-used
       
   
-  if(type != 1 || type != 2 || type != 3){cerr << "Incorrect type #, try again" << endl;  exit(1);}
+ /* if(type != 1 || type != 2 || type != 3){cerr << "Incorrect type #, try again" << endl;  exit(1);}*/
   
-  const char* server_IP_name = serverlp.c_str();//converts to standard C char array
-  struct hostent* host = gethostbyname(server_IP_name);//formerly My home IP hardcoded
+ // const char* server_IP_name = serverlp.c_str();//converts to standard C char array
+  struct hostent* host = gethostbyname("127.0.0.1"/*serverlp*//*server_IP_name*/);//formerly My home IP hardcoded
   
   sockaddr_in sendSockAddr;
   bzero((char*)&sendSockAddr, sizeof(sendSockAddr));
@@ -47,9 +47,9 @@ int main (int argc, char *argv[num_arguments]) {
   
   int connectStatus = connect(clientSd, (sockaddr*)&sendSockAddr, sizeof(sendSockAddr));
   
- /* if(connectStatus < 0) { //************************************************************unlock for final
+  if(connectStatus < 0) { //*******************************************unlock for final
     cerr << "failed to connect to the server" << endl;
-  }*/
+  }
   
   //**********************************************************************************
 
@@ -80,7 +80,7 @@ int main (int argc, char *argv[num_arguments]) {
             }
     case 3: 
             cout << " single write" << endl;
-          //  write(clientSd, databuf, nbufs * bufsize); // sd: socket descriptor
+            write(clientSd, databuf, nbufs * bufsize); // sd: socket descriptor
             break;
   }
   
@@ -90,12 +90,14 @@ int main (int argc, char *argv[num_arguments]) {
   double data_sending_time = (lap_time.tv_usec - start_time.tv_usec);
   
   //Step 6 here read()**************************************************************
+  int numReads; 
+  int bytesRead = read(clientSd, &numReads, sizeof(numReads));
   
   gettimeofday(&stop_time, NULL); //end timestamp
   
   double round_trip_time = (stop_time.tv_usec - start_time.tv_usec);
   
-  cout << "Test 1: data-sending time = " << data_sending_time << " usec, round-trip time = " << round_trip_time << " usec, #reads = ******put reads from step 6 here" << endl;
+  cout << "Test 1: data-sending time = " << data_sending_time << " usec, round-trip time = " << round_trip_time << " usec, #reads = " << numReads << endl;
   
   close(clientSd);
   
