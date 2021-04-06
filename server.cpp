@@ -103,5 +103,7 @@ void *your_function(void *arg){
   
   cout << "Data-recieving time = " << data_receiving_time << " usec" << endl;
   
+  cout << databuf << endl;
+  
   return nullptr;
 }
