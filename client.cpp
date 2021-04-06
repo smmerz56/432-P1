@@ -54,6 +54,9 @@ int main (int argc, char *argv[num_arguments]) {
   //**********************************************************************************
 
   char databuf[nbufs][bufsize] = {'s'};//data buffers based on passed in args from above
+  memset(databuf, 's', sizeof(databuf[0][0]) * nbufs * bufsize);
+  
+ // cout << "databuf " << databuf[0][1] << endl;
   
   struct timeval start_time, lap_time, stop_time; //beginning, lap, and end timestamps
   gettimeofday(&start_time, NULL); //beginning timestamp
