@@ -28,7 +28,7 @@ struct mystruct {
 
 int main (int argc, char *argv[num_arguments]) {
 
-     if (argc < 3 || argc > 3){ cerr << "Too few arguements, try again" << endl; exit(1);}
+    /* if (argc < 3 || argc > 3){ cerr << argc << "Too few arguements, try again" << endl; exit(1);}*/
     // Create the socket
     int server_port = atoi(argv[1]);
     int repetition = atoi(argv[2]);
@@ -59,7 +59,9 @@ int main (int argc, char *argv[num_arguments]) {
     socklen_t newsockSize = sizeof(newsock);
    
     while (1) {// looping infinitly looking for connections
-	    int newSd = accept(serverSd, (sockaddr *)&newsock, &newsockSize);  // grabs the new connection and assigns it a temporary socket.. 
+    
+     int newSd = accept(serverSd, (sockaddr *)&newsock, &newsockSize);  // grabs the new connection and assigns it a temporary socket.. 
+     
      struct mystruct struct1;   
      struct1.sd = newSd;
      struct1.repetitions = repetition;
@@ -68,12 +70,6 @@ int main (int argc, char *argv[num_arguments]) {
       pthread_t worker_thread;
       pthread_create(&worker_thread, NULL, your_function, (void *)&struct1/*NULL*/);
       pthread_join(worker_thread, NULL);
-
-    //  char buf[BUF_SIZE];
-	   // int bytesRead = read(newSd, buf, BUF_SIZE);
-	   // cout << "read " << bytesRead << " bytes" << endl;
-	   // cout << "Received: " << buf << endl;
-    // Close the socket
     
 	    close(newSd);
       exit(0); // get rid of later
@@ -89,20 +85,21 @@ void *your_function(void *arg){
   struct timeval start_time, stop_time; //beginning, lap, and end timestamps
   gettimeofday(&start_time, NULL); //beginning timestamp
   
-  struct mystruct *struct2 = (struct mystruct*)&arg;
+  struct mystruct struct2 = *(struct mystruct*)arg;
   
-  int sd = struct2->sd;
-  int repetition = struct2->repetitions;
+  int sd = struct2.sd;
+  int repetition = struct2.repetitions;
   int count = 0;
- /* for ( int nRead = 0; 
-            ( nRead += read( sd, databuf, BUF_SIZE - nRead ) ) < BUF_SIZE; 
-            ++count );*/ // check manual*****************************************
+  for(int i = 0; i < repetition; i++){
+    for ( int nRead = 0; ( nRead += read( sd, databuf, BUF_SIZE - nRead ) ) < BUF_SIZE; ++count ); 
+    count++;
+  }
             
   gettimeofday(&stop_time, NULL); //end timestamp
   
   double data_receiving_time = (stop_time.tv_usec - start_time.tv_usec);
   
-  //send (write?) the # of read calls (count in for loop above) to client
+  int hello = write(sd, &count, sizeof(count));// get rid of hello later
   
   cout << "Data-recieving time = " << data_receiving_time << " usec" << endl;
   
