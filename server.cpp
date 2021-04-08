@@ -71,7 +71,7 @@ int main (int argc, char *argv[num_arguments]) {
       pthread_create(&worker_thread, NULL, your_function, (void *)&struct1/*NULL*/);
       pthread_join(worker_thread, NULL);
     
-	    close(newSd);
+	    //close(newSd);
       exit(0); // get rid of later
     }
     return 0;
@@ -97,13 +97,15 @@ void *your_function(void *arg){
             
   gettimeofday(&stop_time, NULL); //end timestamp
   
-  double data_receiving_time = (stop_time.tv_usec - start_time.tv_usec);
+  /*unsigned long long*/ double data_receiving_time = (((stop_time.tv_sec - start_time.tv_sec) /** 1000000*/) + (stop_time.tv_usec - start_time.tv_usec)) /*/ 1000*/;  
   
   int hello = write(sd, &count, sizeof(count));// get rid of hello later
   
   cout << "Data-recieving time = " << data_receiving_time << " usec" << endl;
   
-  cout << databuf << endl;
+ // cout << databuf << endl;
+ 
+ close(sd);
   
   return nullptr;
 }
