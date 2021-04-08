@@ -10,14 +10,14 @@
 #include <sys/uio.h>      // writev
 #include <pthread.h>      // pthreads
 #include <sys/time.h>      //gettimeofday
-
 using namespace std;
+
+//-----------------------------------------------------------------------------
+// Server: bind, listen, and accept
+//-----------------------------------------------------------------------------
 
 const unsigned int BUF_SIZE = 1500;
 const unsigned int num_arguments = 3;
-//********************************************************************************************
-// Servers bind, listen, and accept
-//********************************************************************************************
 
 void *your_function(void *arg);
 
@@ -28,39 +28,45 @@ struct mystruct {
 
 int main (int argc, char *argv[num_arguments]) {
 
-    /* if (argc < 3 || argc > 3){ cerr << argc << "Too few arguements, try again" << endl; exit(1);}*/
+    if (argc != 3){
+      cerr << "Incorrect amount of arguments, try again" << endl; 
+      exit(1);
+    }
+      
     // Create the socket
     int server_port = atoi(argv[1]);
     int repetition = atoi(argv[2]);
 
-    // Configure the socket and tell it what you want kind of socket you want it to be
     sockaddr_in acceptSock;// the configuration setup
-    bzero((char*) &acceptSock, sizeof(acceptSock));  // zero out the data structure
+    bzero((char*) &acceptSock, sizeof(acceptSock));//zero out the structure
     
     acceptSock.sin_family = AF_INET;   // using IP
-    acceptSock.sin_addr.s_addr = htonl(INADDR_ANY); // listen on any address this computer has
-    acceptSock.sin_port = htons(server_port);  // set the port to listen on*
-
-    int serverSd = socket(AF_INET, SOCK_STREAM, 0); // creates a new socket for IP using TCP 
+    // listen on any address this computer has
+    acceptSock.sin_addr.s_addr = htonl(INADDR_ANY); 
+    acceptSock.sin_port = htons(server_port);  // set the port to listen on
+    
+    // creates a new socket for IP using TCP 
+    int serverSd = socket(AF_INET, SOCK_STREAM, 0); 
 
     const int on = 1;
-
-    setsockopt(serverSd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(int));  // this lets us reuse the socket without waiting for hte OS to recycle it
+    // this lets us reuse the socket without waiting for hte OS to recycle it
+    setsockopt(serverSd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(int));
     
     // Bind the socket
-    bind(serverSd, (sockaddr*) &acceptSock, sizeof(acceptSock));  // bind the socket using the parameters we set earlier
+    bind(serverSd, (sockaddr*) &acceptSock, sizeof(acceptSock));  
     
     // Listen on the socket
     int n = 5; //if it reaches 5 connections, it starts rejecting them
-    listen(serverSd, n);  // listen on the socket and allow up to n connections to wait.
+    listen(serverSd, n);// listen on the socket and allow up to n connections
 
     // Accept the connection as a new socket    
-    sockaddr_in newsock;   // place to store parameters for the new connection
+    sockaddr_in newsock;// place to store parameters for the new connection
     socklen_t newsockSize = sizeof(newsock);
    
     while (1) {// looping infinitly looking for connections
-    
-     int newSd = accept(serverSd, (sockaddr *)&newsock, &newsockSize);  // grabs the new connection and assigns it a temporary socket.. 
+     
+     // grabs the new connection and assigns it a temporary socket 
+     int newSd = accept(serverSd, (sockaddr *)&newsock, &newsockSize);
      
      struct mystruct struct1;   
      struct1.sd = newSd;
@@ -68,21 +74,24 @@ int main (int argc, char *argv[num_arguments]) {
        
       //create new thread
       pthread_t worker_thread;
-      pthread_create(&worker_thread, NULL, your_function, (void *)&struct1/*NULL*/);
+      pthread_create(&worker_thread, NULL, your_function, (void *)&struct1);
       pthread_join(worker_thread, NULL);
     
-	    //close(newSd);
-      exit(0); // get rid of later
+      exit(0);
     }
     return 0;
 
 }
 
-//*************************************************************************************
+//-----------------------------------------------------------------------------
 // your_function
+// called by the worker thread created in main
+// reads in data from client
+// keeps track of how long it takes to recieve data
+// sends the amount of reads back to client
 void *your_function(void *arg){
   char databuf[BUF_SIZE];
-  struct timeval start_time, stop_time; //beginning, lap, and end timestamps
+  struct timeval start_time, stop_time; //beginning and end timestamps
   gettimeofday(&start_time, NULL); //beginning timestamp
   
   struct mystruct struct2 = *(struct mystruct*)arg;
@@ -91,21 +100,23 @@ void *your_function(void *arg){
   int repetition = struct2.repetitions;
   int count = 0;
   for(int i = 0; i < repetition; i++){
-    for ( int nRead = 0; ( nRead += read( sd, databuf, BUF_SIZE - nRead ) ) < BUF_SIZE; ++count ); 
-    count++;
+    for ( int nRead = 0; 
+          ( nRead += read( sd, databuf, BUF_SIZE - nRead ) ) < BUF_SIZE; 
+          ++count ); 
+      count++;
   }
             
   gettimeofday(&stop_time, NULL); //end timestamp
   
-  /*unsigned long long*/ double data_receiving_time = (((stop_time.tv_sec - start_time.tv_sec) /** 1000000*/) + (stop_time.tv_usec - start_time.tv_usec)) /*/ 1000*/;  
+  unsigned long long data_receiving_time = 
+          (((stop_time.tv_sec - start_time.tv_sec) * 1000000) + 
+          (stop_time.tv_usec - start_time.tv_usec));
   
-  int hello = write(sd, &count, sizeof(count));// get rid of hello later
+  write(sd, &count, sizeof(count));//write amount of reads back to the client
   
   cout << "Data-recieving time = " << data_receiving_time << " usec" << endl;
-  
- // cout << databuf << endl;
  
- close(sd);
+  close(sd);
   
   return nullptr;
 }
