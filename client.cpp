@@ -34,7 +34,7 @@ int main (int argc, char *argv[num_arguments]) {
  /* if(type != 1 || type != 2 || type != 3){cerr << "Incorrect type #, try again" << endl;  exit(1);}*/
   
  // const char* server_IP_name = serverlp.c_str();//converts to standard C char array
-  struct hostent* host = gethostbyname("127.0.0.1"/*serverlp*//*server_IP_name*/);//formerly My home IP hardcoded
+  struct hostent* host = gethostbyname(/*"127.0.0.1"*/serverlp/*server_IP_name*/);//formerly My home IP hardcoded
   
   sockaddr_in sendSockAddr;
   bzero((char*)&sendSockAddr, sizeof(sendSockAddr));
@@ -63,28 +63,41 @@ int main (int argc, char *argv[num_arguments]) {
   
   cout << repetition << " repetitions of type " << type << ":" ;
   
-  switch(type){ 
-    case 1: { 
-              cout << " multiple writes" << endl;
-              for(int j = 0; j < nbufs; j++){
-                write(clientSd, databuf[j], bufsize);
-              }    
-              break;
+  switch(type){
+    case 1: {
+            cout << " multiple writes" << endl;
+            break;
             }
     case 2: {
-              cout << " writev" << endl;
-              struct iovec vector[nbufs];
-              for ( int j = 0; j < nbufs; j++ ) {
-                vector[j].iov_base = databuf[j];
-                vector[j].iov_len = bufsize;
-              }
-              writev(clientSd, vector, nbufs);           // sd: socket descriptor
-              break;
+            cout << " writev" << endl;
+            break;
             }
     case 3: 
             cout << " single write" << endl;
-            write(clientSd, databuf, nbufs * bufsize); // sd: socket descriptor
             break;
+  }
+  
+  for(int i = 0; i < repetition; i++){
+    switch(type){ 
+      case 1: {                 
+                for(int j = 0; j < nbufs; j++){
+                  write(clientSd, databuf[j], bufsize);
+                }    
+                break;
+              }
+      case 2: {                
+                struct iovec vector[nbufs];
+                for ( int j = 0; j < nbufs; j++ ) {
+                  vector[j].iov_base = databuf[j];
+                  vector[j].iov_len = bufsize;
+                }
+                writev(clientSd, vector, nbufs);           // sd: socket descriptor
+                break;
+              }
+      case 3:               
+              write(clientSd, databuf, nbufs * bufsize); // sd: socket descriptor
+              break;
+    }
   }
   
   
