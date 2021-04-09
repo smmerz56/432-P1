@@ -14,15 +14,17 @@ using namespace std;
 
 //-----------------------------------------------------------------------------
 // Client: create Socket and connect 
+//
+// Notes: On my machine I had to compile every time before running************
 //-----------------------------------------------------------------------------
 
 const unsigned int num_arguments = 7;
 
 int main (int argc, char *argv[num_arguments]) {
 
-  if (argc < 7){
+  if (argc != 7){
     cerr << "Too few arguements, try again" << endl;  
-    exit(1);
+    exit(1); 
   }
 
   int server_port = atoi(argv[1]); //a server IP port
@@ -44,7 +46,7 @@ int main (int argc, char *argv[num_arguments]) {
   
   sendSockAddr.sin_family = AF_INET;// using IP
   sendSockAddr.sin_addr.s_addr = 
-    inet_addr(inet_ntoa(*(struct in_addr*)*host->h_addr_list));
+  inet_addr(inet_ntoa(*(struct in_addr*)*host->h_addr_list));
   sendSockAddr.sin_port = htons(server_port);
   
   int clientSd = socket(AF_INET, SOCK_STREAM, 0);
@@ -85,7 +87,7 @@ int main (int argc, char *argv[num_arguments]) {
                 //write call for each data buffer               
                 for(int j = 0; j < nbufs; j++){
                   write(clientSd, databuf[j], bufsize);
-                }    
+                }     
                 break;
               }
       case 2: {    
