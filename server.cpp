@@ -14,6 +14,8 @@ using namespace std;
 
 //-----------------------------------------------------------------------------
 // Server: bind, listen, and accept
+//
+// Notes: On my machine I had to compile every time before running***********
 //-----------------------------------------------------------------------------
 
 const unsigned int BUF_SIZE = 1500;
@@ -99,11 +101,13 @@ void *your_function(void *arg){
   int sd = struct2.sd;
   int repetition = struct2.repetitions;
   int count = 0;
+  //int read = 0;
   for(int i = 0; i < repetition; i++){
     for ( int nRead = 0; 
-          ( nRead += read( sd, databuf, BUF_SIZE - nRead ) ) < BUF_SIZE; 
+          ( nRead += read( sd, databuf, BUF_SIZE - nRead ) ) < BUF_SIZE;  
           ++count ); 
       count++;
+      //read++;
   }
             
   gettimeofday(&stop_time, NULL); //end timestamp
